@@ -87,7 +87,7 @@ class Blip2T5(Blip2Base):
 
         for name, param in self.t5_model.named_parameters():
             param.requires_grad = False
-            param.data = param.data.bfloat16()
+            param.data = param.data.float16()
 
         self.t5_proj = nn.Linear(
             self.Qformer.config.hidden_size, self.t5_model.config.hidden_size
@@ -119,7 +119,7 @@ class Blip2T5(Blip2Base):
         inputs_t5 = self.t5_proj(query_output.last_hidden_state)
         atts_t5 = torch.ones(inputs_t5.size()[:-1], dtype=torch.long).to(image.device)
 
-        with self.maybe_autocast(dtype=torch.bfloat16):
+        with self.maybe_autocast(dtype=torch.float16):
             input_tokens = self.t5_tokenizer(
                 samples["text_input"],
                 padding="longest",
@@ -221,7 +221,7 @@ class Blip2T5(Blip2Base):
 
         encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
 
-        with self.maybe_autocast(dtype=torch.bfloat16):
+        with self.maybe_autocast(dtype=torch.float16):
             inputs_embeds = self.t5_model.encoder.embed_tokens(input_tokens.input_ids)
             inputs_embeds = torch.cat([inputs_t5, inputs_embeds], dim=1)
 
@@ -289,7 +289,7 @@ class Blip2T5(Blip2Base):
 
         encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
 
-        with self.maybe_autocast(dtype=torch.bfloat16):
+        with self.maybe_autocast(dtype=torch.float16):
             inputs_embeds = self.t5_model.encoder.embed_tokens(input_tokens.input_ids)
             inputs_embeds = torch.cat([inputs_t5, inputs_embeds], dim=1)
 
